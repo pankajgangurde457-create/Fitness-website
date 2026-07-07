@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log In — FitPulse</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">FIT<span>PULSE</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="workout-plans.html">Workouts</a></li>
+      <li><a href="nutrition.html">Nutrition</a></li>
+      <li><a href="exercise-library.html">Exercises</a></li>
+      <li><a href="challenges.html">Challenges</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+      <div class="nav-right" id="authSlot" style="gap:10px;"></div>
+      <button class="nav-toggle" id="navToggle">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="eyebrow">Welcome back</div>
+    <h2>Log in to FitPulse</h2>
+    <p class="small">Demo account: <b>demo@fitpulse.com</b> / <b>demo1234</b></p>
+    <div class="form-msg" id="msg"></div>
+    <form id="loginForm">
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" name="email" required placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" name="password" required placeholder="••••••••">
+      </div>
+      <div class="helper-row">
+        <label class="small"><input type="checkbox" style="width:auto;"> Remember me</label>
+        <a href="forgot-password.html" class="small">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Log In</button>
+    </form>
+    <p class="small center" style="margin-top:20px;">Don't have an account? <a href="register.html" style="color:var(--accent);font-weight:600;">Create one free</a></p>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const fd = new FormData(this);
+  const res = FP.auth.login(fd.get('email').trim(), fd.get('password'));
+  const msg = document.getElementById('msg');
+  if (res.ok) {
+    FP.showMsg(msg, true, 'Login successful — redirecting to your dashboard...');
+    setTimeout(() => location.href = 'dashboard.html', 700);
+  } else {
+    FP.showMsg(msg, false, res.msg);
+  }
+});
+</script>
+</body>
+</html>

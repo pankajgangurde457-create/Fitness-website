@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — FitPulse</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">FIT<span>PULSE</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="workout-plans.html">Workouts</a></li>
+      <li><a href="nutrition.html">Nutrition</a></li>
+      <li><a href="exercise-library.html">Exercises</a></li>
+      <li><a href="challenges.html">Challenges</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+      <div class="nav-right" id="authSlot" style="gap:10px;"></div>
+      <button class="nav-toggle" id="navToggle">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="dash-shell">
+  <aside class="dash-side">
+    <a href="#" class="active" data-tab="users">👤 Users</a>
+    <a href="#" data-tab="blogs">📝 Blogs</a>
+    <a href="#" data-tab="challenges">🏆 Challenges</a>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-top">
+      <div>
+        <div class="eyebrow">Admin only</div>
+        <h2 style="margin:0;">Admin Panel</h2>
+        <p class="small" style="margin:0;">Login as admin@fitpulse.com / admin123 to reach this page.</p>
+      </div>
+    </div>
+
+    <div id="tab-users">
+      <div class="card">
+        <h3>Manage Users</h3>
+        <table style="margin-top:16px;" id="usersTable"></table>
+      </div>
+    </div>
+
+    <div id="tab-blogs" style="display:none;">
+      <div class="card">
+        <h3>Manage Blogs</h3>
+        <form id="blogForm" class="two-col" style="margin:16px 0 26px;">
+          <input type="text" name="title" placeholder="Post title" required style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-raised);color:var(--text);">
+          <input type="text" name="tag" placeholder="Tag e.g. Training" required style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-raised);color:var(--text);">
+          <button class="btn btn-primary" style="grid-column:1/-1;">Add Blog Post</button>
+        </form>
+        <table id="blogsTable"></table>
+      </div>
+    </div>
+
+    <div id="tab-challenges" style="display:none;">
+      <div class="card">
+        <h3>Manage Challenges</h3>
+        <table style="margin-top:16px;" id="challengesTable"></table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const admin = FP.auth.requireAdmin();
+
+document.querySelectorAll('.dash-side a').forEach(tab => {
+  tab.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.dash-side a').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    ['users','blogs','challenges'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = (t === tab.dataset.tab) ? 'block' : 'none';
+    });
+  });
+});
+
+function renderUsers(){
+  const users = FP.db.read('fp_users', []);
+  document.getElementById('usersTable').innerHTML = `
+    <tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th></th></tr>
+    ${users.map(u => `
+      <tr>
+        <td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td>${u.joined}</td>
+        <td><span class="pill ${u.status === 'active' ? 'green':'orange'}">${u.status}</span></td>
+        <td><button class="btn btn-outline btn-sm" data-id="${u.id}" data-act="toggleStatus">${u.status === 'active' ? 'Suspend' : 'Activate'}</button></td>
+      </tr>`).join('')}
+  `;
+  document.querySelectorAll('[data-act="toggleStatus"]').forEach(b => {
+    b.addEventListener('click', () => {
+      const users = FP.db.read('fp_users', []);
+      const u = users.find(x => x.id === parseInt(b.dataset.id));
+      u.status = u.status === 'active' ? 'suspended' : 'active';
+      FP.db.write('fp_users', users);
+      renderUsers();
+    });
+  });
+}
+
+function renderBlogs(){
+  const blogs = FP.db.read('fp_blogs', []);
+  document.getElementById('blogsTable').innerHTML = `
+    <tr><th>Title</th><th>Tag</th><th>Author</th><th>Date</th><th></th></tr>
+    ${blogs.map(b => `
+      <tr>
+        <td>${b.title}</td><td>${b.tag}</td><td>${b.author}</td><td>${b.date}</td>
+        <td><button class="btn btn-ghost btn-sm" data-id="${b.id}" data-act="delBlog">Delete</button></td>
+      </tr>`).join('')}
+  `;
+  document.querySelectorAll('[data-act="delBlog"]').forEach(b => {
+    b.addEventListener('click', () => {
+      let blogs = FP.db.read('fp_blogs', []);
+      blogs = blogs.filter(x => x.id !== parseInt(b.dataset.id));
+      FP.db.write('fp_blogs', blogs);
+      renderBlogs();
+    });
+  });
+}
+
+document.getElementById('blogForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const fd = new FormData(this);
+  const blogs = FP.db.read('fp_blogs', []);
+  blogs.push({ id: Date.now(), title: fd.get('title'), tag: fd.get('tag'), author: admin.name, date: new Date().toISOString().slice(0,10), excerpt: 'New post added by admin.' });
+  FP.db.write('fp_blogs', blogs);
+  this.reset();
+  renderBlogs();
+});
+
+function renderChallenges(){
+  const list = FP.db.read('fp_challenges', []);
+  document.getElementById('challengesTable').innerHTML = `
+    <tr><th>Title</th><th>Duration</th><th>Participants</th></tr>
+    ${list.map(c => `<tr><td>${c.title}</td><td>${c.days} days</td><td>${c.participants}</td></tr>`).join('')}
+  `;
+}
+
+renderUsers();
+renderBlogs();
+renderChallenges();
+</script>
+</body>
+</html>
