@@ -87,27 +87,42 @@
 <script src="js/app.js"></script>
 <script>
 const user = FP.auth.requireAuth();
-const KEY = 'fp_bookings_' + (user ? user.id : 'anon');
 
-function render(){
-  const bookings = FP.db.read(KEY, []);
-  const box = document.getElementById('bookingList');
-  box.innerHTML = bookings.length ? bookings.map(b => `
-    <div style="padding:12px 0;border-bottom:1px dashed var(--border);">
-      <b>${b.trainer}</b><br>
-      <span class="small muted">${b.date} at ${b.time} · ${b.type}</span>
-    </div>`).join('') : '<p class="small muted">No bookings yet.</p>';
+async function render(){
+  try {
+    const bookings = await FP.apiCall('/trainer-bookings');
+    const box = document.getElementById('bookingList');
+    box.innerHTML = bookings.length ? bookings.map(b => `
+      <div style="padding:12px 0;border-bottom:1px dashed var(--border);">
+        <b>${b.trainer}</b><br>
+        <span class="small muted">${b.date} at ${b.time} · ${b.type}</span>
+      </div>`).join('') : '<p class="small muted">No bookings yet.</p>';
+  } catch (err) {
+    console.error('Failed to get bookings:', err);
+  }
 }
 
-document.getElementById('bookForm').addEventListener('submit', function(e){
+document.getElementById('bookForm').addEventListener('submit', async function(e){
   e.preventDefault();
   const fd = new FormData(this);
-  const bookings = FP.db.read(KEY, []);
-  bookings.push({ trainer: fd.get('trainer'), date: fd.get('date'), time: fd.get('time'), type: fd.get('type') });
-  FP.db.write(KEY, bookings);
-  FP.showMsg(document.getElementById('msg'), true, 'Session booked! You will get a reminder before your slot.');
-  this.reset();
-  render();
+  const msgEl = document.getElementById('msg');
+  try {
+    await FP.apiCall('/trainer-bookings', {
+      method: 'POST',
+      body: JSON.stringify({
+        trainer: fd.get('trainer'),
+        date: fd.get('date'),
+        time: fd.get('time'),
+        type: fd.get('type')
+      })
+    });
+    FP.showMsg(msgEl, true, 'Session booked! You will get a reminder before your slot.');
+    this.reset();
+    await render();
+  } catch (err) {
+    console.error('Failed to log booking:', err);
+    FP.showMsg(msgEl, false, err.message);
+  }
 });
 
 render();

@@ -35,8 +35,28 @@ FP.initNav = function () {
   });
 };
 
-/* ---------------- Fake "DB" helpers (localStorage) ---------------- */
+/* ---------------- API & DB helpers ---------------- */
+FP.API_URL = 'http://localhost:5000/api';
+
+FP.apiCall = async function (endpoint, options = {}) {
+  const token = localStorage.getItem('fp_token');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const res = await fetch(`${FP.API_URL}${endpoint}`, { ...options, headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'API request failed');
+  }
+  return res.json();
+};
+
 FP.db = {
+  // Legacy support - read from localStorage for non-database sync states (like theme)
   read(key, fallback) {
     try {
       const v = localStorage.getItem(key);
@@ -48,58 +68,61 @@ FP.db = {
   }
 };
 
-/* seed a demo admin + demo user so login/admin panel aren't empty */
+/* seed local storage theme fallback (database seeding is handled by backend) */
 FP.seed = function () {
-  let users = FP.db.read('fp_users', null);
-  if (!users) {
-    users = [
-      { id: 1, name: 'Admin User', email: 'admin@fitpulse.com', password: 'admin123', role: 'admin', joined: '2026-01-04', status: 'active' },
-      { id: 2, name: 'Rohit Sharma', email: 'demo@fitpulse.com', password: 'demo1234', role: 'member', joined: '2026-02-11', status: 'active' },
-      { id: 3, name: 'Sneha Patil', email: 'sneha@fitpulse.com', password: 'demo1234', role: 'member', joined: '2026-03-02', status: 'active' }
-    ];
-    FP.db.write('fp_users', users);
-  }
-  if (!FP.db.read('fp_blogs', null)) {
-    FP.db.write('fp_blogs', [
-      { id: 1, title: '5 Mistakes Beginners Make in the Gym', author: 'Coach Aman', date: '2026-06-02', tag: 'Training', excerpt: 'Skipping warm-ups to chasing heavy weight too soon — here is what to fix first.' },
-      { id: 2, title: 'How Much Protein Do You Actually Need?', author: 'Dr. Neha Kulkarni', date: '2026-06-14', tag: 'Nutrition', excerpt: 'A simple, evidence-based way to calculate your daily protein target.' },
-      { id: 3, title: 'Why Rest Days Make You Stronger', author: 'Coach Aman', date: '2026-06-28', tag: 'Recovery', excerpt: 'Muscle grows during recovery, not during the workout. Here is the science.' }
-    ]);
-  }
-  if (!FP.db.read('fp_challenges', null)) {
-    FP.db.write('fp_challenges', [
-      { id: 1, title: '30-Day Plank Challenge', participants: 482, days: 30, joined: false },
-      { id: 2, title: '10K Steps Everyday', participants: 1203, days: 21, joined: false },
-      { id: 3, title: 'No Sugar August', participants: 356, days: 31, joined: false },
-      { id: 4, title: 'Push-Up Progression', participants: 640, days: 14, joined: false }
-    ]);
-  }
+  // No-op. Backend seeds the database automatically on start.
 };
 
 /* ---------------- Auth ---------------- */
 FP.auth = {
   currentUser() {
-    return FP.db.read('fp_session', null);
-  },
-  login(email, password) {
-    const users = FP.db.read('fp_users', []);
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-    if (!user) return { ok: false, msg: 'Invalid email or password.' };
-    FP.db.write('fp_session', user);
-    return { ok: true, user };
-  },
-  register(name, email, password) {
-    const users = FP.db.read('fp_users', []);
-    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-      return { ok: false, msg: 'An account with this email already exists.' };
+    try {
+      const u = localStorage.getItem('fp_session');
+      return u ? JSON.parse(u) : null;
+    } catch (e) {
+      return null;
     }
-    const user = { id: Date.now(), name, email, password, role: 'member', joined: new Date().toISOString().slice(0, 10), status: 'active' };
-    users.push(user);
-    FP.db.write('fp_users', users);
-    FP.db.write('fp_session', user);
-    return { ok: true, user };
   },
-  logout() {
+  async login(email, password) {
+    try {
+      const res = await FP.apiCall('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+      if (res.token) {
+        localStorage.setItem('fp_token', res.token);
+        localStorage.setItem('fp_session', JSON.stringify(res.user));
+        return { ok: true, user: res.user };
+      }
+      return { ok: false, msg: res.message || 'Login failed.' };
+    } catch (err) {
+      return { ok: false, msg: err.message };
+    }
+  },
+  async register(name, email, password) {
+    try {
+      const res = await FP.apiCall('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password })
+      });
+      // If email verification is enabled, we won't get a token immediately
+      if (res.token) {
+        localStorage.setItem('fp_token', res.token);
+        localStorage.setItem('fp_session', JSON.stringify(res.user));
+        return { ok: true, user: res.user };
+      }
+      return { ok: true, message: res.message, user: res.user };
+    } catch (err) {
+      return { ok: false, msg: err.message };
+    }
+  },
+  async logout() {
+    try {
+      await FP.apiCall('/auth/logout', { method: 'POST' });
+    } catch (e) {
+      // Ignore network errors on logout
+    }
+    localStorage.removeItem('fp_token');
     localStorage.removeItem('fp_session');
   },
   requireAuth() {
@@ -123,8 +146,8 @@ FP.renderAuthNav = function () {
     slot.innerHTML = `
       <a href="dashboard.html" class="btn btn-outline btn-sm">${user.name.split(' ')[0]}</a>
       <button class="btn btn-primary btn-sm" id="logoutBtn">Logout</button>`;
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      FP.auth.logout();
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await FP.auth.logout();
       location.href = 'index.html';
     });
   } else {

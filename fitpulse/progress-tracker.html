@@ -72,9 +72,15 @@
 <script src="js/app.js"></script>
 <script>
 const user = FP.auth.requireAuth();
-const KEY = 'fp_progress_' + (user ? user.id : 'anon');
 
-function getEntries(){ return FP.db.read(KEY, []); }
+async function getEntries(){
+  try {
+    return await FP.apiCall('/progress');
+  } catch (err) {
+    console.error('Failed to get progress entries:', err);
+    return [];
+  }
+}
 
 function drawChart(entries){
   const svg = document.getElementById('chart');
@@ -100,22 +106,30 @@ function drawChart(entries){
   `;
 }
 
-function renderHistory(){
-  const entries = getEntries();
+async function renderHistory(){
+  const entries = await getEntries();
   const table = document.getElementById('historyTable');
   table.innerHTML = '<tr><th>Date</th><th>Weight</th><th>Note</th></tr>' +
     entries.slice().reverse().map(e => `<tr><td>${e.date}</td><td>${e.weight} kg</td><td>${e.note || '—'}</td></tr>`).join('');
   drawChart(entries);
 }
 
-document.getElementById('logForm').addEventListener('submit', function(e){
+document.getElementById('logForm').addEventListener('submit', async function(e){
   e.preventDefault();
   const fd = new FormData(this);
-  const entries = getEntries();
-  entries.push({ date: new Date().toISOString().slice(0,10), weight: parseFloat(fd.get('weight')), note: fd.get('note') });
-  FP.db.write(KEY, entries);
-  this.reset();
-  renderHistory();
+  try {
+    await FP.apiCall('/progress', {
+      method: 'POST',
+      body: JSON.stringify({
+        weight: fd.get('weight'),
+        note: fd.get('note')
+      })
+    });
+    this.reset();
+    await renderHistory();
+  } catch (err) {
+    console.error('Failed to log weight entry:', err);
+  }
 });
 
 renderHistory();

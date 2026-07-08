@@ -64,10 +64,25 @@
 
 <script src="js/app.js"></script>
 <script>
-document.getElementById('contactForm').addEventListener('submit', function(e){
+document.getElementById('contactForm').addEventListener('submit', async function(e){
   e.preventDefault();
-  FP.showMsg(document.getElementById('msg'), true, 'Thanks for reaching out — we will get back to you soon.');
-  this.reset();
+  const fd = new FormData(this);
+  const msgEl = document.getElementById('msg');
+  try {
+    await FP.apiCall('/contact', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: fd.get('name'),
+        email: fd.get('email'),
+        message: fd.get('message')
+      })
+    });
+    FP.showMsg(msgEl, true, 'Thanks for reaching out — we will get back to you soon.');
+    this.reset();
+  } catch (err) {
+    console.error('Failed to submit message:', err);
+    FP.showMsg(msgEl, false, err.message);
+  }
 });
 </script>
 </body>

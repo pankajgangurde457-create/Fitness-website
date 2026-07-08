@@ -79,7 +79,19 @@ const PLANS = {
   }
 };
 
+let PLANS = null;
+
+async function init(){
+  try {
+    PLANS = await FP.apiCall('/workouts');
+    renderPlan('beginner');
+  } catch (err) {
+    console.error('Failed to load workouts:', err);
+  }
+}
+
 function renderPlan(level){
+  if (!PLANS || !PLANS[level]) return;
   const p = PLANS[level];
   const area = document.getElementById('planArea');
   area.innerHTML = `
@@ -107,7 +119,7 @@ document.querySelectorAll('.chip').forEach(chip => {
   });
 });
 
-renderPlan('beginner');
+init();
 </script>
 </body>
 </html>

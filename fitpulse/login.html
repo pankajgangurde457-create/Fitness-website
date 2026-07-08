@@ -56,14 +56,16 @@
 
 <script src="js/app.js"></script>
 <script>
-document.getElementById('loginForm').addEventListener('submit', function(e){
+document.getElementById('loginForm').addEventListener('submit', async function(e){
   e.preventDefault();
   const fd = new FormData(this);
-  const res = FP.auth.login(fd.get('email').trim(), fd.get('password'));
   const msg = document.getElementById('msg');
+  const res = await FP.auth.login(fd.get('email').trim(), fd.get('password'));
   if (res.ok) {
-    FP.showMsg(msg, true, 'Login successful — redirecting to your dashboard...');
-    setTimeout(() => location.href = 'dashboard.html', 700);
+    FP.showMsg(msg, true, 'Login successful — redirecting...');
+    setTimeout(() => {
+      location.href = res.user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+    }, 700);
   } else {
     FP.showMsg(msg, false, res.msg);
   }

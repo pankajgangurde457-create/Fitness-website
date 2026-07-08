@@ -70,7 +70,19 @@ const EXERCISES = [
   { name:'Face Pull', cat:'shoulders', level:'Beginner', tip:'Pull to face height, squeeze shoulder blades together.' }
 ];
 
+let EXERCISES = [];
+
+async function init(){
+  try {
+    EXERCISES = await FP.apiCall('/exercises');
+    render('all');
+  } catch (err) {
+    console.error('Failed to load exercises:', err);
+  }
+}
+
 function render(cat){
+  if (!EXERCISES) return;
   const grid = document.getElementById('exGrid');
   const list = cat === 'all' ? EXERCISES : EXERCISES.filter(e => e.cat === cat);
   grid.innerHTML = list.map(e => `
@@ -89,7 +101,7 @@ document.querySelectorAll('#filterRow .chip').forEach(chip => {
   });
 });
 
-render('all');
+init();
 </script>
 </body>
 </html>

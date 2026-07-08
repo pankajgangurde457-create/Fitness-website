@@ -64,7 +64,7 @@
 
 <script src="js/app.js"></script>
 <script>
-document.getElementById('registerForm').addEventListener('submit', function(e){
+document.getElementById('registerForm').addEventListener('submit', async function(e){
   e.preventDefault();
   const fd = new FormData(this);
   const msg = document.getElementById('msg');
@@ -72,10 +72,15 @@ document.getElementById('registerForm').addEventListener('submit', function(e){
     FP.showMsg(msg, false, 'Passwords do not match.');
     return;
   }
-  const res = FP.auth.register(fd.get('name').trim(), fd.get('email').trim(), fd.get('password'));
+  const res = await FP.auth.register(fd.get('name').trim(), fd.get('email').trim(), fd.get('password'));
   if (res.ok) {
-    FP.showMsg(msg, true, 'Account created — redirecting to your dashboard...');
-    setTimeout(() => location.href = 'dashboard.html', 700);
+    if (res.message) {
+      // Email confirmation required case
+      FP.showMsg(msg, true, res.message);
+    } else {
+      FP.showMsg(msg, true, 'Account created — redirecting...');
+      setTimeout(() => location.href = 'dashboard.html', 700);
+    }
   } else {
     FP.showMsg(msg, false, res.msg);
   }

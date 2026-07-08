@@ -113,9 +113,14 @@ document.getElementById('bmiForm').addEventListener('submit', function(e){
 
   const user = FP.auth.currentUser();
   if (user) {
-    const hist = FP.db.read('fp_bmi_' + user.id, []);
-    hist.push({ date: new Date().toISOString().slice(0,10), bmi: +bmi.toFixed(1) });
-    FP.db.write('fp_bmi_' + user.id, hist);
+    FP.apiCall('/progress/bmi', {
+      method: 'POST',
+      body: JSON.stringify({
+        height: fd.get('height'),
+        weight: fd.get('weight'),
+        bmi: +bmi.toFixed(1)
+      })
+    }).catch(err => console.error('Failed to log BMI to history:', err));
   }
 });
 </script>

@@ -42,29 +42,37 @@
 
 <script src="js/app.js"></script>
 <script>
-function render(){
-  const list = FP.db.read('fp_challenges', []);
-  const grid = document.getElementById('challengeGrid');
-  grid.innerHTML = list.map(c => `
-    <div class="card">
-      <span class="tag ${c.joined ? '' : ''}">${c.days} days</span>
-      <h3>${c.title}</h3>
-      <p>${c.participants + (c.joined ? 1 : 0)} people participating right now.</p>
-      <button class="btn ${c.joined ? 'btn-outline' : 'btn-primary'} btn-sm" data-id="${c.id}">
-        ${c.joined ? '✓ Joined — Leave' : 'Join Challenge'}
-      </button>
-    </div>`).join('');
+async function render(){
+  try {
+    const list = await FP.apiCall('/challenges');
+    const grid = document.getElementById('challengeGrid');
+    grid.innerHTML = list.map(c => `
+      <div class="card">
+        <span class="tag">${c.days} days</span>
+        <h3>${c.title}</h3>
+        <p>${c.participants} people participating right now.</p>
+        <button class="btn ${c.joined ? 'btn-outline' : 'btn-primary'} btn-sm" data-id="${c.id}">
+          ${c.joined ? '✓ Joined — Leave' : 'Join Challenge'}
+        </button>
+      </div>`).join('');
 
-  grid.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = parseInt(btn.dataset.id);
-      const list = FP.db.read('fp_challenges', []);
-      const item = list.find(c => c.id === id);
-      item.joined = !item.joined;
-      FP.db.write('fp_challenges', list);
-      render();
+    grid.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = parseInt(btn.dataset.id);
+        try {
+          await FP.apiCall(`/challenges/${id}/join`, { method: 'POST' });
+          await render();
+        } catch (err) {
+          console.error('Failed to toggle challenge status:', err);
+          if (err.message.includes('Authentication required')) {
+            location.href = 'login.html';
+          }
+        }
+      });
     });
-  });
+  } catch (err) {
+    console.error('Failed to render challenges:', err);
+  }
 }
 render();
 </script>

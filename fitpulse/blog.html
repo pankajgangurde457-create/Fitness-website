@@ -42,15 +42,19 @@
 
 <script src="js/app.js"></script>
 <script>
-function render(){
-  const posts = FP.db.read('fp_blogs', []);
-  document.getElementById('blogGrid').innerHTML = posts.map(p => `
-    <div class="card">
-      <span class="tag">${p.tag}</span>
-      <h3>${p.title}</h3>
-      <p>${p.excerpt}</p>
-      <div class="small muted">${p.author} · ${p.date}</div>
-    </div>`).join('');
+async function render(){
+  try {
+    const posts = await FP.apiCall('/blogs');
+    document.getElementById('blogGrid').innerHTML = posts.map(p => `
+      <div class="card">
+        <span class="tag">${p.tag}</span>
+        <h3>${p.title}</h3>
+        <p>${p.excerpt}</p>
+        <div class="small muted">${p.author} · ${p.date}</div>
+      </div>`).join('');
+  } catch (err) {
+    console.error('Failed to render blog posts:', err);
+  }
 }
 render();
 </script>
