@@ -1,0 +1,103 @@
+{
+  "users": [
+    {
+      "id": "test_user_999",
+      "email": "test999@fitsync.com",
+      "name": "Test Runner"
+    },
+    {
+      "id": "privacy_test_user_77",
+      "email": "privacy77@fitsync.com",
+      "name": "Privacy Advocate"
+    },
+    {
+      "id": "user_123",
+      "email": "user123@fitsync.com",
+      "name": "John Doe"
+    }
+  ],
+  "consents": {
+    "test_user_999": {
+      "grantedScopes": {
+        "steps": true,
+        "distance": true,
+        "heart_rate": true,
+        "hrv": true,
+        "sleep": true,
+        "calories": true,
+        "workout": true,
+        "gps_route": true
+      },
+      "updatedAt": "2026-07-10T04:58:09.765Z"
+    },
+    "privacy_test_user_77": {
+      "grantedScopes": {
+        "steps": false,
+        "distance": false,
+        "gps_route": false,
+        "heart_rate": true,
+        "hrv": false,
+        "sleep": false,
+        "calories": false,
+        "workout": false
+      },
+      "updatedAt": "2026-07-10T04:58:10.521Z"
+    },
+    "user_123": {
+      "grantedScopes": {
+        "steps": true,
+        "distance": true,
+        "gps_route": true,
+        "heart_rate": true,
+        "hrv": true,
+        "sleep": true,
+        "calories": true,
+        "workout": true
+      },
+      "updatedAt": "2026-07-10T05:19:43.135Z"
+    }
+  },
+  "connections": {
+    "test_user_999": {
+      "fitbit": {
+        "accessToken": "fitbit_access_token_xtsgg0sl7l",
+        "refreshToken": "fitbit_refresh_token_3ygtgqj6pe8",
+        "expiresAt": "2026-07-10T05:58:09.814Z",
+        "scopes": [
+          "steps",
+          "heart_rate",
+          "sleep",
+          "calories"
+        ]
+      }
+    },
+    "user_123": {
+      "healthkit": {
+        "accessToken": "hk_native_token",
+        "refreshToken": "",
+        "expiresAt": "",
+        "scopes": [
+          "steps",
+          "distance",
+          "heart_rate",
+          "hrv",
+          "sleep",
+          "workout"
+        ]
+      },
+      "health_connect": {
+        "accessToken": "hc_native_token",
+        "refreshToken": "",
+        "expiresAt": "",
+        "scopes": [
+          "steps",
+          "distance",
+          "heart_rate",
+          "sleep",
+          "calories",
+          "workout"
+        ]
+      }
+    }
+  }
+}

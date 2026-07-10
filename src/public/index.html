@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitSync Integration Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --panel-bg: rgba(30, 41, 59, 0.45);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      /* Theme colors */
+      --primary: #818cf8;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.15);
+      --success: #34d399;
+      --success-glow: rgba(52, 211, 153, 0.2);
+      --warning: #fbbf24;
+      --warning-glow: rgba(251, 191, 36, 0.2);
+      --danger: #f87171;
+      --danger-glow: rgba(248, 113, 113, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 2rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+      animation: pulse 2s infinite alternate;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #ffffff, #c7d2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .user-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .user-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--success-glow);
+    }
+
+    /* Layout Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Panels (Glassmorphism) */
+    .panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 1.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .panel:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .panel-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Buttons */
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 0 15px var(--primary-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: none;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: #ef4444;
+      box-shadow: 0 0 15px var(--danger-glow);
+    }
+
+    /* Consent Scopes Checkbox Grid */
+    .scopes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .scope-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .scope-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .scope-card input[type="checkbox"] {
+      accent-color: var(--primary);
+      width: 16px;
+      height: 16px;
+    }
+
+    .scope-name {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      text-transform: capitalize;
+    }
+
+    /* Adapters Grid */
+    .adapters-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .adapter-row {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .adapter-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .adapter-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .adapter-icon {
+      font-size: 1.5rem;
+    }
+
+    .adapter-details h4 {
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-bottom: 0.15rem;
+      text-transform: capitalize;
+    }
+
+    .adapter-details p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .3s;
+      border-radius: 24px;
+      border: 1px solid var(--border-color);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Health table */
+    .health-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .health-table th, .health-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .health-table th {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .status-healthy {
+      background: rgba(52, 211, 153, 0.1);
+      color: var(--success);
+    }
+    .status-rate_limited {
+      background: rgba(251, 191, 36, 0.1);
+      color: var(--warning);
+    }
+    .status-auth_error {
+      background: rgba(248, 113, 113, 0.1);
+      color: var(--danger);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: currentColor;
+    }
+
+    /* Logs & Telemetry */
+    .logs-panel {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 1024px) {
+      .logs-panel {
+        grid-column: span 1;
+      }
+    }
+
+    .console-log {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1rem;
+      height: 250px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #a7f3d0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .log-entry {
+      line-height: 1.4;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      padding-bottom: 0.25rem;
+    }
+
+    .log-time {
+      color: var(--text-muted);
+      margin-right: 0.5rem;
+    }
+
+    .log-source {
+      color: var(--primary);
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+
+    .log-msg {
+      color: #e2e8f0;
+    }
+
+    /* Sliders and Conflict Checks */
+    .simulation-control-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .simulation-control-group {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .range-input {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+    }
+
+    .range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .conflict-card {
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.2);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .conflict-title {
+      font-weight: 600;
+      color: var(--warning);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Notification display */
+    .notif-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .notif-bubble {
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid var(--primary);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .notif-bubble-title {
+      font-weight: 500;
+      margin-bottom: 0.15rem;
+      color: #ffffff;
+    }
+
+    .notif-bubble-body {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    /* Keyframes */
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+      }
+      100% {
+        box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-badge">FS</div>
+      <div>
+        <h1>FitSync Integration Layer</h1>
+        <p style="font-size: 0.75rem; color: var(--text-muted)">Cross-Device Sync & Consent Sandbox Dashboard</p>
+      </div>
+    </div>
+    <div class="user-pill">
+      <div class="user-dot"></div>
+      <span id="active-user-lbl">User: user_123</span>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+
+    <!-- Privacy & Granular Settings Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <h3 class="panel-title">🛡️ Granular User Privacy Consents</h3>
+        <span style="font-size: 0.75rem; color: var(--text-muted)" id="last-consent-update">Updated: Just now</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem">
+        Gated at ingestion. Toggling off permissions prevents that metric from being pulled or stored.
+      </p>
+
+      <div class="scopes-grid">
+        <label class="scope-card">
+          <input type="checkbox" id="scope-steps" onchange="toggleScope('steps')" checked>
+          <span class="scope-name">Steps</span>
+        </label>
+        <label class="scope-card">
+          <input type="checkbox" id="scope-distance" onchange="toggleScope('distance')" checked>
+          <span class="scope-name">Distance</span>
+        </label>
+        <label class="scope-card">
+          <input type="checkbox" id="scope-heart_rate" onchange="toggleScope('heart_rate')" checked>
+          <span class="scope-name">Heart Rate</span>
+        </label>
+        <label class="scope-card">
+          <input type="checkbox" id="scope-hrv" onchange="toggleScope('hrv')" checked>
+          <span class="scope-name">HRV</span>
+        </label>
+        <label class="scope-card">
+          <input type="checkbox" id="scope-sleep" onchange="toggleScope('sleep')" checked>
+          <span class="scope-name">Sleep</span>
+        </label>
+        <label class="scope-card">
+          <input type="checkbox" id="scope-calories" onchange="toggleScope('calories')" checked>
+          <span class="scope-name">Calories</span>
+        </label>
+        <label class="scope-card">
+          <input type="checkbox" id="scope-workout" onchange="toggleScope('workout')" checked>
+          <span class="scope-name">Workouts</span>
+        </label>
+        <label class="scope-card">
+          <input type="checkbox" id="scope-gps_route" onchange="toggleScope('gps_route')" checked>
+          <span class="scope-name">GPS Route</span>
+        </label>
+      </div>
+
+      <div class="simulation-control-group">
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>⚡ Simulated Phone Battery</span>
+            <span id="battery-lbl">100%</span>
+          </div>
+          <input type="range" class="range-input" id="battery-range" min="10" max="100" value="100" onchange="adjustBattery()">
+          <span style="font-size: 0.7rem; color: var(--text-muted)">
+            Adaptive Sync Interval: <strong id="interval-lbl">5 min</strong>
+          </span>
+        </div>
+
+        <div>
+          <div class="slider-label" style="margin-bottom: 0.25rem">
+            <span>📅 Calendar conflicts</span>
+          </div>
+          <div id="calendar-conflicts-container">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Connections & Control Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <h3 class="panel-title">🔌 Active Sync Connections</h3>
+        <button class="btn" id="sync-btn" onclick="triggerManualSync()">
+          🔄 Manual Sync
+        </button>
+      </div>
+
+      <div class="adapters-list">
+        <!-- HealthKit -->
+        <div class="adapter-row">
+          <div class="adapter-info">
+            <span class="adapter-icon">🍎</span>
+            <div class="adapter-details">
+              <h4>Apple HealthKit</h4>
+              <p>Native SDK. Syncs Steps, HR, HRV, Sleep, Workouts.</p>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="conn-healthkit" onchange="toggleConnection('healthkit')" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Health Connect -->
+        <div class="adapter-row">
+          <div class="adapter-info">
+            <span class="adapter-icon">🤖</span>
+            <div class="adapter-details">
+              <h4>Google Health Connect</h4>
+              <p>Native API. Syncs Steps, Distance, Calories, Sleep, HR.</p>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="conn-health_connect" onchange="toggleConnection('health_connect')">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Fitbit -->
+        <div class="adapter-row">
+          <div class="adapter-info">
+            <span class="adapter-icon">💎</span>
+            <div class="adapter-details">
+              <h4>Fitbit Web API</h4>
+              <p>Cloud OAuth2. Syncs Steps, HR, Calories, Sleep.</p>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="conn-fitbit" onchange="toggleConnection('fitbit')">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Garmin -->
+        <div class="adapter-row">
+          <div class="adapter-info">
+            <span class="adapter-icon">🛰️</span>
+            <div class="adapter-details">
+              <h4>Garmin Connect</h4>
+              <p>OAuth Webhooks. Syncs Steps, HR, Distance, Sleep, Workouts.</p>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="conn-garmin" onchange="toggleConnection('garmin')">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- BLE Device Pairing -->
+        <div class="adapter-row">
+          <div class="adapter-info">
+            <span class="adapter-icon">💙</span>
+            <div class="adapter-details">
+              <h4>Direct Bluetooth / ANT+</h4>
+              <p>Pairs heart-rate straps/scales directly. High confidence.</p>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="conn-bluetooth_device" onchange="toggleConnection('bluetooth_device')">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Health Monitoring Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <h3 class="panel-title">📈 Integration Health checks</h3>
+        <button class="btn btn-secondary" onclick="fetchHealth()">🔄 Refresh</button>
+      </div>
+
+      <table class="health-table">
+        <thead>
+          <tr>
+            <th>Adapter</th>
+            <th>Status</th>
+            <th>Latency</th>
+            <th>Last Synced</th>
+          </tr>
+        </thead>
+        <tbody id="health-tbody">
+          <!-- Loaded dynamically -->
+        </tbody>
+      </table>
+
+      <!-- Simulation Buttons -->
+      <div class="simulation-control-group" style="margin-top: 1.5rem">
+        <div>
+          <span style="font-size: 0.85rem; color: var(--text-muted); display:block; margin-bottom: 0.5rem">
+            Fitbit Rate-Limits (HTTP 429)
+          </span>
+          <button class="btn btn-danger" id="fitbit-ratelimit-btn" onclick="toggleFitbitRateLimit(true)">
+            💥 Inject Fitbit 429
+          </button>
+          <button class="btn btn-secondary" id="fitbit-reset-btn" onclick="toggleFitbitRateLimit(false)" style="display: none">
+            🛠️ Clear Fitbit Error
+          </button>
+        </div>
+
+        <div>
+          <span style="font-size: 0.85rem; color: var(--text-muted); display:block; margin-bottom: 0.5rem">
+            Sudden BLE Dropout
+          </span>
+          <button class="btn btn-danger" onclick="triggerBLEDisconnect()">
+            🔌 Simulate BLE Dropout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Push Notification Logs -->
+    <div class="panel">
+      <div class="panel-header">
+        <h3 class="panel-title">🔔 Sent Push Notifications</h3>
+        <button class="btn btn-secondary" onclick="fetchNotifications()">🔄 Refresh</button>
+      </div>
+
+      <div class="notif-feed" id="notifications-container">
+        <p style="font-size: 0.8rem; color: var(--text-muted)">No notifications sent yet.</p>
+      </div>
+
+      <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem">
+        <span style="font-size: 0.85rem; color: var(--text-muted); display:block; margin-bottom: 0.5rem">
+          Trigger Test Hydration Alert
+        </span>
+        <button class="btn" onclick="triggerHydrationAlert()">
+          💧 Send Water Reminder
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Telemetry / Ingested events -->
+    <div class="panel logs-panel">
+      <div class="panel-header">
+        <h3 class="panel-title">📜 Live Ingestion Telemetry (Normalized Event Store)</h3>
+        <span style="font-size: 0.75rem; color: var(--text-muted)">
+          Refreshes every 2 seconds. Duplicate inputs are automatically merged.
+        </span>
+      </div>
+
+      <div class="console-log" id="console-log">
+        <div class="log-entry">
+          <span class="log-time">[System Log]</span>
+          <span class="log-source">Ingestor</span>
+          <span class="log-msg">Ready. Connect an adapter or click manual sync to ingest events...</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const userId = 'user_123';
+    let fitbitRateLimited = false;
+
+    // Bootstrapping the User and Connections in Postgres
+    async function bootstrapDashboard() {
+      // 1. Create user in sandbox
+      await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, email: 'user123@fitsync.com', name: 'John Doe' })
+      });
+
+      // 2. Set default active connection for HealthKit in backend DB
+      await fetch('/api/sync/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, provider: 'healthkit' })
+      });
+
+      // 3. Sync default consent states to backend
+      await syncConsentToBackend();
+
+      // 4. Start periodic loaders
+      fetchEvents();
+      fetchHealth();
+      fetchCalendar();
+      fetchNotifications();
+      
+      setInterval(fetchEvents, 2000);
+      setInterval(fetchHealth, 5000);
+    }
+
+    async function syncConsentToBackend() {
+      const scopes = {
+        steps: document.getElementById('scope-steps').checked,
+        distance: document.getElementById('scope-distance').checked,
+        heart_rate: document.getElementById('scope-heart_rate').checked,
+        hrv: document.getElementById('scope-hrv').checked,
+        sleep: document.getElementById('scope-sleep').checked,
+        calories: document.getElementById('scope-calories').checked,
+        workout: document.getElementById('scope-workout').checked,
+        gps_route: document.getElementById('scope-gps_route').checked
+      };
+
+      await fetch(`/api/privacy/consent/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scopes })
+      });
+      
+      document.getElementById('last-consent-update').innerText = 'Updated: ' + new Date().toLocaleTimeString();
+    }
+
+    async function toggleScope(scopeName) {
+      await syncConsentToBackend();
+      addConsoleEntry('PrivacyService', `User adjusted settings: '${scopeName}' set to ${document.getElementById('scope-' + scopeName).checked}`);
+    }
+
+    async function toggleConnection(provider) {
+      const checked = document.getElementById('conn-' + provider).checked;
+      const endpoint = checked ? '/api/sync/connect' : '/api/sync/disconnect';
+      
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, provider })
+      });
+
+      if (res.ok) {
+        addConsoleEntry('SyncService', `Successfully ${checked ? 'connected' : 'disconnected'} ${provider}.`);
+        fetchHealth();
+      } else {
+        document.getElementById('conn-' + provider).checked = !checked;
+        alert('Failed to connect provider: ' + provider);
+      }
+    }
+
+    async function triggerManualSync() {
+      const syncBtn = document.getElementById('sync-btn');
+      syncBtn.innerText = '🔄 Syncing...';
+      syncBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/sync/manual/${userId}`, { method: 'POST' });
+        const data = await res.json();
+        
+        addConsoleEntry('SyncService', `Manual sync triggered. Recieved ${data.count} events.`);
+        if (data.events && data.events.length > 0) {
+          for (const ev of data.events) {
+            addConsoleEntry(ev.source, `Sync payload: type='${ev.dataType}' | val=${JSON.stringify(ev.value)} ${ev.unit} | confidence='${ev.confidence}'`);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        syncBtn.innerText = '🔄 Manual Sync';
+        syncBtn.disabled = false;
+        fetchEvents();
+        fetchHealth();
+      }
+    }
+
+    async function fetchEvents() {
+      const res = await fetch(`/api/sync/events/${userId}?limit=15`);
+      const events = await res.json();
+      
+      const consoleLog = document.getElementById('console-log');
+      
+      // Update UI with latest events
+      if (events.length > 0) {
+        // Clear default placeholder if exists
+        const placeholder = consoleLog.querySelector('.log-entry[data-placeholder]');
+        if (placeholder) placeholder.remove();
+
+        // Render events
+        events.forEach(ev => {
+          const id = `ev-${ev.eventId}`;
+          if (!document.getElementById(id)) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.id = id;
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.innerText = `[${new Date(ev.timestamp).toLocaleTimeString()}]`;
+            
+            const srcSpan = document.createElement('span');
+            srcSpan.className = 'log-source';
+            srcSpan.innerText = ev.source.toUpperCase();
+            
+            const msgSpan = document.createElement('span');
+            msgSpan.className = 'log-msg';
+            msgSpan.innerText = `NORMALIZED: ${ev.dataType} = ${typeof ev.value === 'object' ? JSON.stringify(ev.value) : ev.value} ${ev.unit} (confidence: ${ev.confidence})`;
+
+            entry.appendChild(timeSpan);
+            entry.appendChild(srcSpan);
+            entry.appendChild(msgSpan);
+            
+            consoleLog.insertBefore(entry, consoleLog.firstChild);
+          }
+        });
+      }
+    }
+
+    async function fetchHealth() {
+      const res = await fetch('/api/monitoring/health');
+      const healthReport = await res.json();
+      
+      const tbody = document.getElementById('health-tbody');
+      tbody.innerHTML = '';
+
+      healthReport.forEach(h => {
+        const tr = document.createElement('tr');
+        
+        const tdName = document.createElement('td');
+        tdName.style.textTransform = 'capitalize';
+        tdName.style.fontWeight = '500';
+        tdName.innerText = h.name.replace('_', ' ');
+
+        const tdStatus = document.createElement('td');
+        const badge = document.createElement('span');
+        badge.className = `status-badge status-${h.status}`;
+        
+        const dot = document.createElement('span');
+        dot.className = 'status-dot';
+        
+        badge.appendChild(dot);
+        
+        let statusText = h.status.replace('_', ' ');
+        if (h.status === 'healthy') statusText = 'Healthy';
+        badge.appendChild(document.createTextNode(' ' + statusText));
+        tdStatus.appendChild(badge);
+
+        const tdLatency = document.createElement('td');
+        tdLatency.innerText = h.latencyMs + ' ms';
+
+        const tdLast = document.createElement('td');
+        tdLast.innerText = h.lastSyncTime ? new Date(h.lastSyncTime).toLocaleTimeString() : 'Never';
+
+        tr.appendChild(tdName);
+        tr.appendChild(tdStatus);
+        tr.appendChild(tdLatency);
+        tr.appendChild(tdLast);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function adjustBattery() {
+      const slider = document.getElementById('battery-range');
+      const level = slider.value;
+      document.getElementById('battery-lbl').innerText = level + '%';
+
+      const res = await fetch(`/api/sync/battery/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ batteryLevel: level })
+      });
+      const data = await res.json();
+
+      document.getElementById('interval-lbl').innerText = data.currentSyncIntervalMinutes + ' min';
+      addConsoleEntry('SyncService', `Battery level modified to ${level}%. Interval adjusted to ${data.currentSyncIntervalMinutes} minutes.`);
+    }
+
+    async function fetchCalendar() {
+      const now = new Date();
+      const startTime = now.toISOString();
+      const endTime = new Date(now.getTime() + 24 * 3600 * 1000).toISOString();
+
+      const res = await fetch(`/api/calendar/${userId}?startTime=${startTime}&endTime=${endTime}`);
+      const events = await res.json();
+
+      const container = document.getElementById('calendar-conflicts-container');
+      container.innerHTML = '';
+
+      if (events.length > 0) {
+        events.slice(0, 2).forEach(ev => {
+          const card = document.createElement('div');
+          card.className = 'conflict-card';
+          
+          const title = document.createElement('span');
+          title.className = 'conflict-title';
+          title.innerText = '⚠️ Calendar Conflict: ' + ev.title;
+
+          const detail = document.createElement('span');
+          detail.style.fontSize = '0.75rem';
+          detail.style.color = 'var(--text-muted)';
+          
+          const time = new Date(ev.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          detail.innerText = `Time Slot: ${time} (${ev.source.replace('_', ' ')})`;
+
+          card.appendChild(title);
+          card.appendChild(detail);
+          container.appendChild(card);
+        });
+      } else {
+        container.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted)">No active conflicts.</span>';
+      }
+    }
+
+    async function toggleFitbitRateLimit(active) {
+      await fetch('/api/fitbit/simulate-ratelimit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active })
+      });
+
+      fitbitRateLimited = active;
+      document.getElementById('fitbit-ratelimit-btn').style.display = active ? 'none' : 'inline-flex';
+      document.getElementById('fitbit-reset-btn').style.display = active ? 'inline-flex' : 'none';
+      
+      addConsoleEntry('FitbitAdapter', active ? 'INJECTED rate limiting 429 simulation.' : 'CLEARED rate limiting simulation.');
+      fetchHealth();
+    }
+
+    async function triggerBLEDisconnect() {
+      const res = await fetch('/api/bluetooth/simulate-disconnect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      
+      if (res.ok) {
+        addConsoleEntry('BluetoothAdapter', 'Simulating device dropout mid-workout...');
+        setTimeout(() => {
+          fetchNotifications();
+          fetchHealth();
+        }, 1000);
+      }
+    }
+
+    async function triggerHydrationAlert() {
+      await fetch('/api/notifications/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          type: 'hydration_reminder',
+          payload: {
+            title: 'Hydration Goal Alert 💧',
+            body: 'You have been active for 1 hour. Grab a glass of water to keep your hydration optimal.'
+          }
+        }
+      )});
+      
+      addConsoleEntry('PushAdapter', 'Dispatched hydration push alert.');
+      fetchNotifications();
+    }
+
+    async function fetchNotifications() {
+      const res = await fetch(`/api/notifications/sent?userId=${userId}`);
+      const logs = await res.json();
+
+      const container = document.getElementById('notifications-container');
+      container.innerHTML = '';
+
+      if (logs.length > 0) {
+        logs.forEach(log => {
+          const bubble = document.createElement('div');
+          bubble.className = 'notif-bubble';
+          
+          const title = document.createElement('div');
+          title.className = 'notif-bubble-title';
+          title.innerText = log.payload.title;
+
+          const body = document.createElement('div');
+          body.className = 'notif-bubble-body';
+          body.innerText = log.payload.body;
+
+          bubble.appendChild(title);
+          bubble.appendChild(body);
+          container.appendChild(bubble);
+        });
+      } else {
+        container.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted)">No notifications sent yet.</p>';
+      }
+    }
+
+    function addConsoleEntry(source, message) {
+      const consoleLog = document.getElementById('console-log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'log-time';
+      timeSpan.innerText = `[${new Date().toLocaleTimeString()}]`;
+      
+      const srcSpan = document.createElement('span');
+      srcSpan.className = 'log-source';
+      srcSpan.innerText = source.toUpperCase();
+      
+      const msgSpan = document.createElement('span');
+      msgSpan.className = 'log-msg';
+      msgSpan.innerText = message;
+
+      entry.appendChild(timeSpan);
+      entry.appendChild(srcSpan);
+      entry.appendChild(msgSpan);
+      
+      consoleLog.insertBefore(entry, consoleLog.firstChild);
+    }
+
+    window.onload = bootstrapDashboard;
+  </script>
+</body>
+</html>
