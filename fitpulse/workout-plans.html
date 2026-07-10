@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Plans — FitPulse</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">FIT<span>PULSE</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="workout-plans.html">Workouts</a></li>
+      <li><a href="nutrition.html">Nutrition</a></li>
+      <li><a href="exercise-library.html">Exercises</a></li>
+      <li><a href="challenges.html">Challenges</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+      <div class="nav-right" id="authSlot" style="gap:10px;"></div>
+      <button class="nav-toggle" id="navToggle">☰</button>
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Workout Plans</div>
+      <h1 style="font-size:2.6rem;">Structured plans for every stage</h1>
+      <p>Pick your level below — each plan runs on a weekly split you can follow at home or in the gym.</p>
+    </div>
+
+    <div class="chip-row">
+      <button class="chip active" data-level="beginner">Beginner</button>
+      <button class="chip" data-level="intermediate">Intermediate</button>
+      <button class="chip" data-level="advanced">Advanced</button>
+    </div>
+
+    <div id="planArea"></div>
+  </div>
+</section>
+
+<script src="js/app.js"></script>
+<script>
+const PLANS = {
+  beginner: {
+    title: 'Foundation Builder', freq: '3 days / week', desc: 'Build the habit and learn correct form before adding load.',
+    days: [
+      { day: 'Day 1 — Full Body A', items: ['Bodyweight Squat — 3×12', 'Incline Push-up — 3×10', 'Assisted Row — 3×12', 'Plank — 3×30s'] },
+      { day: 'Day 2 — Rest / Walk', items: ['20–30 min brisk walk', 'Light stretching'] },
+      { day: 'Day 3 — Full Body B', items: ['Glute Bridge — 3×15', 'Wall Push-up — 3×12', 'Band Pull-apart — 3×15', 'Dead Bug — 3×10'] }
+    ]
+  },
+  intermediate: {
+    title: 'Strength & Conditioning', freq: '4 days / week', desc: 'Progressive overload paired with conditioning circuits.',
+    days: [
+      { day: 'Day 1 — Upper Push/Pull', items: ['Bench Press — 4×8', 'Bent-over Row — 4×8', 'Overhead Press — 3×10', 'Lat Pulldown — 3×12'] },
+      { day: 'Day 2 — Lower Body', items: ['Back Squat — 4×6', 'Romanian Deadlift — 3×8', 'Walking Lunge — 3×12', 'Calf Raise — 3×15'] },
+      { day: 'Day 3 — Conditioning', items: ['Rowing Intervals — 8×250m', 'Kettlebell Swings — 5×15', 'Core Circuit — 3 rounds'] },
+      { day: 'Day 4 — Full Body', items: ['Deadlift — 4×5', 'Push Press — 3×8', 'Pull-ups — 4×AMRAP', 'Farmer Carry — 3×40m'] }
+    ]
+  },
+  advanced: {
+    title: 'Performance Block', freq: '5–6 days / week', desc: 'Periodized programming for serious lifters and athletes.',
+    days: [
+      { day: 'Day 1 — Squat Focus', items: ['Back Squat — 5×5 @ 80%', 'Front Squat — 3×6', 'Bulgarian Split Squat — 3×10', 'Weighted Plank — 3×45s'] },
+      { day: 'Day 2 — Bench Focus', items: ['Bench Press — 5×5 @ 80%', 'Incline DB Press — 4×8', 'Weighted Dips — 3×10', 'Face Pulls — 3×15'] },
+      { day: 'Day 3 — Deadlift Focus', items: ['Deadlift — 5×3 @ 85%', 'Pendlay Row — 4×8', 'Hanging Leg Raise — 3×12'] },
+      { day: 'Day 4 — Accessory / Conditioning', items: ['Sled Push — 6×20m', 'Sprint Intervals — 10×100m', 'Core Circuit — 4 rounds'] },
+      { day: 'Day 5 — Olympic Lift Practice', items: ['Power Clean — 6×3', 'Push Jerk — 5×3', 'Box Jumps — 4×6'] }
+    ]
+  }
+};
+
+let PLANS = null;
+
+async function init(){
+  try {
+    PLANS = await FP.apiCall('/workouts');
+    renderPlan('beginner');
+  } catch (err) {
+    console.error('Failed to load workouts:', err);
+  }
+}
+
+function renderPlan(level){
+  if (!PLANS || !PLANS[level]) return;
+  const p = PLANS[level];
+  const area = document.getElementById('planArea');
+  area.innerHTML = `
+    <div class="card" style="margin-bottom:26px;">
+      <span class="tag">${p.freq}</span>
+      <h2 style="margin-bottom:4px;">${p.title}</h2>
+      <p>${p.desc}</p>
+    </div>
+    <div class="grid grid-2">
+      ${p.days.map(d => `
+        <div class="card">
+          <h3>${d.day}</h3>
+          <ul style="margin-top:12px;">
+            ${d.items.map(i => `<li class="small" style="padding:6px 0;border-bottom:1px dashed var(--border);">${i}</li>`).join('')}
+          </ul>
+        </div>`).join('')}
+    </div>`;
+}
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    renderPlan(chip.dataset.level);
+  });
+});
+
+init();
+</script>
+</body>
+</html>

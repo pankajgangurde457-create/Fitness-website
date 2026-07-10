@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMI Calculator — FitPulse</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">FIT<span>PULSE</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="workout-plans.html">Workouts</a></li>
+      <li><a href="nutrition.html">Nutrition</a></li>
+      <li><a href="exercise-library.html">Exercises</a></li>
+      <li><a href="challenges.html">Challenges</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+      <div class="nav-right" id="authSlot" style="gap:10px;"></div>
+      <button class="nav-toggle" id="navToggle">☰</button>
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <div class="two-col">
+      <div>
+        <div class="eyebrow">Health check</div>
+        <h1 style="font-size:2.6rem;">BMI Calculator</h1>
+        <p style="max-width:420px;">Body Mass Index gives a quick estimate of whether your weight is in a healthy range for your height. It doesn't account for muscle mass, so use it as a starting point, not a verdict.</p>
+
+        <div class="card" style="margin-top:20px;">
+          <form id="bmiForm">
+            <div class="field-row">
+              <div class="field">
+                <label>Height (cm)</label>
+                <input type="number" name="height" required placeholder="e.g. 170">
+              </div>
+              <div class="field">
+                <label>Weight (kg)</label>
+                <input type="number" name="weight" required placeholder="e.g. 65">
+              </div>
+            </div>
+            <div class="field">
+              <label>Age</label>
+              <input type="number" name="age" placeholder="e.g. 27">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Calculate BMI</button>
+          </form>
+        </div>
+      </div>
+
+      <div>
+        <div class="stat-card" id="resultCard" style="display:none;">
+          <div class="lbl">Your BMI</div>
+          <div class="num" id="bmiVal" style="font-size:3.4rem;">0.0</div>
+          <div class="pill" id="bmiPill" style="display:inline-block;margin-top:10px;">Category</div>
+          <hr class="divider">
+          <p class="small" id="bmiNote">—</p>
+        </div>
+
+        <div class="card">
+          <h3>BMI Categories</h3>
+          <table style="margin-top:14px;">
+            <tr><th>Range</th><th>Category</th></tr>
+            <tr><td>Below 18.5</td><td>Underweight</td></tr>
+            <tr><td>18.5 – 24.9</td><td>Normal</td></tr>
+            <tr><td>25 – 29.9</td><td>Overweight</td></tr>
+            <tr><td>30 and above</td><td>Obese</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="js/app.js"></script>
+<script>
+document.getElementById('bmiForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const fd = new FormData(this);
+  const h = parseFloat(fd.get('height')) / 100;
+  const w = parseFloat(fd.get('weight'));
+  if (!h || !w) return;
+  const bmi = w / (h * h);
+  document.getElementById('resultCard').style.display = 'block';
+  document.getElementById('bmiVal').textContent = bmi.toFixed(1);
+
+  const pill = document.getElementById('bmiPill');
+  const note = document.getElementById('bmiNote');
+  pill.className = 'pill';
+  if (bmi < 18.5) {
+    pill.classList.add('orange'); pill.textContent = 'Underweight';
+    note.textContent = 'Consider a calorie surplus with strength training to build healthy mass.';
+  } else if (bmi < 25) {
+    pill.classList.add('green'); pill.textContent = 'Normal weight';
+    note.textContent = 'You are in a healthy range — focus on maintaining and building strength.';
+  } else if (bmi < 30) {
+    pill.classList.add('orange'); pill.textContent = 'Overweight';
+    note.textContent = 'A modest calorie deficit plus regular training can bring this toward the normal range.';
+  } else {
+    pill.classList.add('orange'); pill.textContent = 'Obese';
+    note.textContent = 'Consider speaking with a professional to build a safe, sustainable plan.';
+  }
+
+  const user = FP.auth.currentUser();
+  if (user) {
+    FP.apiCall('/progress/bmi', {
+      method: 'POST',
+      body: JSON.stringify({
+        height: fd.get('height'),
+        weight: fd.get('weight'),
+        bmi: +bmi.toFixed(1)
+      })
+    }).catch(err => console.error('Failed to log BMI to history:', err));
+  }
+});
+</script>
+</body>
+</html>

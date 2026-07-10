@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account — FitPulse</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">FIT<span>PULSE</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="workout-plans.html">Workouts</a></li>
+      <li><a href="nutrition.html">Nutrition</a></li>
+      <li><a href="exercise-library.html">Exercises</a></li>
+      <li><a href="challenges.html">Challenges</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+      <div class="nav-right" id="authSlot" style="gap:10px;"></div>
+      <button class="nav-toggle" id="navToggle">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="eyebrow">Join free</div>
+    <h2>Create your account</h2>
+    <div class="form-msg" id="msg"></div>
+    <form id="registerForm">
+      <div class="field">
+        <label>Full name</label>
+        <input type="text" name="name" required placeholder="Your name">
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" name="email" required placeholder="you@example.com">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" required minlength="6" placeholder="Min 6 characters">
+        </div>
+        <div class="field">
+          <label>Confirm password</label>
+          <input type="password" name="confirm" required minlength="6" placeholder="Repeat password">
+        </div>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" required style="width:auto;"> I agree to the Terms & Privacy Policy</label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+    </form>
+    <p class="small center" style="margin-top:20px;">Already have an account? <a href="login.html" style="color:var(--accent);font-weight:600;">Log in</a></p>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const fd = new FormData(this);
+  const msg = document.getElementById('msg');
+  if (fd.get('password') !== fd.get('confirm')) {
+    FP.showMsg(msg, false, 'Passwords do not match.');
+    return;
+  }
+  const res = await FP.auth.register(fd.get('name').trim(), fd.get('email').trim(), fd.get('password'));
+  if (res.ok) {
+    if (res.message) {
+      // Email confirmation required case
+      FP.showMsg(msg, true, res.message);
+    } else {
+      FP.showMsg(msg, true, 'Account created — redirecting...');
+      setTimeout(() => location.href = 'dashboard.html', 700);
+    }
+  } else {
+    FP.showMsg(msg, false, res.msg);
+  }
+});
+</script>
+</body>
+</html>

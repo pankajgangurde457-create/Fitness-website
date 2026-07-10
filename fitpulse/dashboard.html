@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — FitPulse</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">FIT<span>PULSE</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="workout-plans.html">Workouts</a></li>
+      <li><a href="nutrition.html">Nutrition</a></li>
+      <li><a href="exercise-library.html">Exercises</a></li>
+      <li><a href="challenges.html">Challenges</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+      <div class="nav-right" id="authSlot" style="gap:10px;"></div>
+      <button class="nav-toggle" id="navToggle">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="dash-shell">
+  <aside class="dash-side">
+    <a href="dashboard.html" class="active">📊 Overview</a>
+    <a href="bmi-calculator.html">🧮 BMI Calculator</a>
+    <a href="workout-plans.html">🏋️ Workout Plans</a>
+    <a href="nutrition.html">🥗 Nutrition</a>
+    <a href="progress-tracker.html">📈 Progress</a>
+    <a href="ai-coach.html">🤖 AI Coach</a>
+    <a href="exercise-library.html">📚 Exercises</a>
+    <a href="challenges.html">🏆 Challenges</a>
+    <a href="trainer-booking.html">🧑‍🏫 Book Trainer</a>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-top">
+      <div>
+        <div class="eyebrow">Welcome back</div>
+        <h2 id="userName" style="margin:0;">—</h2>
+        <p class="small" id="userEmail" style="margin:0;">—</p>
+      </div>
+      <a href="progress-tracker.html" class="btn btn-outline btn-sm">Log today's workout →</a>
+    </div>
+
+    <div class="grid grid-3" style="margin-bottom:30px;">
+      <div class="stat-card">
+        <div class="lbl">Calories today</div>
+        <div class="num"><span id="calNum">0</span> <span class="small muted">/ <span id="calGoal">2200</span> kcal</span></div>
+        <div class="progress-bar"><i id="calBar" style="width:0%;"></i></div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <input type="number" id="calInput" placeholder="kcal eaten" class="mono" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-raised);color:var(--text);">
+          <button class="btn btn-primary btn-sm" id="addCal">Add</button>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="lbl">Water intake</div>
+        <div class="num"><span id="waterNum">0L</span> <span class="small muted">/ <span id="waterGoal">3.0L</span></span></div>
+        <div class="progress-bar"><i id="waterBar" style="width:0%;background:var(--accent);"></i></div>
+        <button class="btn btn-outline btn-sm" id="addWater" style="margin-top:14px;">+ 250ml glass</button>
+      </div>
+
+      <div class="stat-card">
+        <div class="lbl">Current goal</div>
+        <h3 id="goalTarget" style="margin:6px 0;">Lose Fat</h3>
+        <div class="small muted">Target frequency: <span id="goalWorkouts">4× / week</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Update your goal</h3>
+      <form id="goalForm" class="two-col" style="margin-top:16px;">
+        <div class="field">
+          <label>Primary goal</label>
+          <select name="target">
+            <option>Lose Fat</option>
+            <option>Build Muscle</option>
+            <option>Improve Endurance</option>
+            <option>General Fitness</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Workouts per week</label>
+          <select name="weeklyWorkouts">
+            <option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="grid-column:1/-1;">Save Goal</button>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

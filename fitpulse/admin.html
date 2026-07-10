@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — FitPulse</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">FIT<span>PULSE</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="workout-plans.html">Workouts</a></li>
+      <li><a href="nutrition.html">Nutrition</a></li>
+      <li><a href="exercise-library.html">Exercises</a></li>
+      <li><a href="challenges.html">Challenges</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+      <div class="nav-right" id="authSlot" style="gap:10px;"></div>
+      <button class="nav-toggle" id="navToggle">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="dash-shell">
+  <aside class="dash-side">
+    <a href="#" class="active" data-tab="users">👤 Users</a>
+    <a href="#" data-tab="blogs">📝 Blogs</a>
+    <a href="#" data-tab="challenges">🏆 Challenges</a>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-top">
+      <div>
+        <div class="eyebrow">Admin only</div>
+        <h2 style="margin:0;">Admin Panel</h2>
+        <p class="small" style="margin:0;">Login as admin@fitpulse.com / admin123 to reach this page.</p>
+      </div>
+    </div>
+
+    <div id="tab-users">
+      <div class="card">
+        <h3>Manage Users</h3>
+        <table style="margin-top:16px;" id="usersTable"></table>
+      </div>
+    </div>
+
+    <div id="tab-blogs" style="display:none;">
+      <div class="card">
+        <h3>Manage Blogs</h3>
+        <form id="blogForm" class="two-col" style="margin:16px 0 26px;">
+          <input type="text" name="title" placeholder="Post title" required style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-raised);color:var(--text);">
+          <input type="text" name="tag" placeholder="Tag e.g. Training" required style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-raised);color:var(--text);">
+          <button class="btn btn-primary" style="grid-column:1/-1;">Add Blog Post</button>
+        </form>
+        <table id="blogsTable"></table>
+      </div>
+    </div>
+
+    <div id="tab-challenges" style="display:none;">
+      <div class="card">
+        <h3>Manage Challenges</h3>
+        <table style="margin-top:16px;" id="challengesTable"></table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const admin = FP.auth.requireAdmin();
+
+document.querySelectorAll('.dash-side a').forEach(tab => {
+  tab.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.dash-side a').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    ['users','blogs','challenges'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = (t === tab.dataset.tab) ? 'block' : 'none';
+    });
+  });
+});
+
+async function renderUsers(){
+  try {
+    const users = await FP.apiCall('/admin/users');
+    document.getElementById('usersTable').innerHTML = `
+      <tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th></th></tr>
+      ${users.map(u => `
+        <tr>
+          <td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td>${u.joined}</td>
+          <td><span class="pill ${u.status === 'active' ? 'green':'orange'}">${u.status}</span></td>
+          <td><button class="btn btn-outline btn-sm" data-id="${u.id}" data-act="toggleStatus">${u.status === 'active' ? 'Suspend' : 'Activate'}</button></td>
+        </tr>`).join('')}
+    `;
+    document.querySelectorAll('[data-act="toggleStatus"]').forEach(b => {
+      b.addEventListener('click', async () => {
+        const id = b.dataset.id;
+        try {
+          await FP.apiCall(`/admin/users/${id}/toggle-status`, { method: 'POST' });
+          await renderUsers();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    });
+  } catch (err) {
+    console.error('Failed to render users:', err);
+  }
+}
+
+async function renderBlogs(){
+  try {
+    const blogs = await FP.apiCall('/blogs');
+    document.getElementById('blogsTable').innerHTML = `
+      <tr><th>Title</th><th>Tag</th><th>Author</th><th>Date</th><th></th></tr>
+      ${blogs.map(b => `
+        <tr>
+          <td>${b.title}</td><td>${b.tag}</td><td>${b.author}</td><td>${b.date}</td>
+          <td><button class="btn btn-ghost btn-sm" data-id="${b.id}" data-act="delBlog">Delete</button></td>
+        </tr>`).join('')}
+    `;
+    document.querySelectorAll('[data-act="delBlog"]').forEach(b => {
+      b.addEventListener('click', async () => {
+        const id = parseInt(b.dataset.id);
+        try {
+          await FP.apiCall(`/admin/blogs/${id}`, { method: 'DELETE' });
+          await renderBlogs();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    });
+  } catch (err) {
+    console.error('Failed to render blogs:', err);
+  }
+}
+
+document.getElementById('blogForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const fd = new FormData(this);
+  try {
+    await FP.apiCall('/admin/blogs', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: fd.get('title'),
+        tag: fd.get('tag')
+      })
+    });
+    this.reset();
+    await renderBlogs();
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+async function renderChallenges(){
+  try {
+    const list = await FP.apiCall('/admin/challenges');
+    document.getElementById('challengesTable').innerHTML = `
+      <tr><th>Title</th><th>Duration</th><th>Participants</th></tr>
+      ${list.map(c => `<tr><td>${c.title}</td><td>${c.days} days</td><td>${c.participants}</td></tr>`).join('')}
+    `;
+  } catch (err) {
+    console.error('Failed to render challenges:', err);
+  }
+}
+
+renderUsers();
+renderBlogs();
+renderChallenges();
+</script>
+</body>
+</html>

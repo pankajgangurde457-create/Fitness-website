@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exercise Library — FitPulse</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">FIT<span>PULSE</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="workout-plans.html">Workouts</a></li>
+      <li><a href="nutrition.html">Nutrition</a></li>
+      <li><a href="exercise-library.html">Exercises</a></li>
+      <li><a href="challenges.html">Challenges</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+      <div class="nav-right" id="authSlot" style="gap:10px;"></div>
+      <button class="nav-toggle" id="navToggle">☰</button>
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Exercise Library</div>
+      <h1 style="font-size:2.6rem;">Form guides that keep you safe</h1>
+      <p>Filter by muscle group to find the right movement.</p>
+    </div>
+
+    <div class="chip-row" id="filterRow">
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="chest">Chest</button>
+      <button class="chip" data-cat="back">Back</button>
+      <button class="chip" data-cat="legs">Legs</button>
+      <button class="chip" data-cat="core">Core</button>
+      <button class="chip" data-cat="shoulders">Shoulders</button>
+    </div>
+
+    <div class="grid grid-3" id="exGrid"></div>
+  </div>
+</section>
+
+<script src="js/app.js"></script>
+<script>
+const EXERCISES = [
+  { name:'Barbell Bench Press', cat:'chest', level:'Intermediate', tip:'Keep shoulder blades pinned and feet flat throughout the lift.' },
+  { name:'Push-up', cat:'chest', level:'Beginner', tip:'Keep a straight line from head to heels, elbows at ~45°.' },
+  { name:'Incline Dumbbell Press', cat:'chest', level:'Intermediate', tip:'Set bench to 30-45°, control the descent.' },
+  { name:'Pull-up', cat:'back', level:'Advanced', tip:'Full range of motion, avoid kipping unless training for it.' },
+  { name:'Bent-over Row', cat:'back', level:'Intermediate', tip:'Hinge at hips, keep back flat, pull to lower ribs.' },
+  { name:'Lat Pulldown', cat:'back', level:'Beginner', tip:'Pull to upper chest, avoid leaning back excessively.' },
+  { name:'Back Squat', cat:'legs', level:'Intermediate', tip:'Brace core, knees track over toes, hit depth you can control.' },
+  { name:'Romanian Deadlift', cat:'legs', level:'Intermediate', tip:'Soft knees, hinge at hips, keep bar close to legs.' },
+  { name:'Walking Lunge', cat:'legs', level:'Beginner', tip:'Keep torso upright, front knee stacked over ankle.' },
+  { name:'Plank', cat:'core', level:'Beginner', tip:'Squeeze glutes and abs, avoid sagging hips.' },
+  { name:'Hanging Leg Raise', cat:'core', level:'Advanced', tip:'Control the swing, curl pelvis at the top.' },
+  { name:'Dead Bug', cat:'core', level:'Beginner', tip:'Keep lower back pressed to the floor throughout.' },
+  { name:'Overhead Press', cat:'shoulders', level:'Intermediate', tip:'Brace core, press bar in a straight line overhead.' },
+  { name:'Lateral Raise', cat:'shoulders', level:'Beginner', tip:'Slight bend in elbows, lead with elbows not hands.' },
+  { name:'Face Pull', cat:'shoulders', level:'Beginner', tip:'Pull to face height, squeeze shoulder blades together.' }
+];
+
+let EXERCISES = [];
+
+async function init(){
+  try {
+    EXERCISES = await FP.apiCall('/exercises');
+    render('all');
+  } catch (err) {
+    console.error('Failed to load exercises:', err);
+  }
+}
+
+function render(cat){
+  if (!EXERCISES) return;
+  const grid = document.getElementById('exGrid');
+  const list = cat === 'all' ? EXERCISES : EXERCISES.filter(e => e.cat === cat);
+  grid.innerHTML = list.map(e => `
+    <div class="card">
+      <span class="tag">${e.level}</span>
+      <h3>${e.name}</h3>
+      <p>${e.tip}</p>
+    </div>`).join('');
+}
+
+document.querySelectorAll('#filterRow .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#filterRow .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    render(chip.dataset.cat);
+  });
+});
+
+init();
+</script>
+</body>
+</html>

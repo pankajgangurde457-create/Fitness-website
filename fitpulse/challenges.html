@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenges — FitPulse</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html" class="logo">FIT<span>PULSE</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="workout-plans.html">Workouts</a></li>
+      <li><a href="nutrition.html">Nutrition</a></li>
+      <li><a href="exercise-library.html">Exercises</a></li>
+      <li><a href="challenges.html">Challenges</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+      <div class="nav-right" id="authSlot" style="gap:10px;"></div>
+      <button class="nav-toggle" id="navToggle">☰</button>
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Challenges</div>
+      <h1 style="font-size:2.6rem;">Compete. Build a streak. Stay consistent.</h1>
+      <p>Join a challenge and track your streak alongside the community.</p>
+    </div>
+    <div class="grid grid-2" id="challengeGrid"></div>
+  </div>
+</section>
+
+<script src="js/app.js"></script>
+<script>
+async function render(){
+  try {
+    const list = await FP.apiCall('/challenges');
+    const grid = document.getElementById('challengeGrid');
+    grid.innerHTML = list.map(c => `
+      <div class="card">
+        <span class="tag">${c.days} days</span>
+        <h3>${c.title}</h3>
+        <p>${c.participants} people participating right now.</p>
+        <button class="btn ${c.joined ? 'btn-outline' : 'btn-primary'} btn-sm" data-id="${c.id}">
+          ${c.joined ? '✓ Joined — Leave' : 'Join Challenge'}
+        </button>
+      </div>`).join('');
+
+    grid.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = parseInt(btn.dataset.id);
+        try {
+          await FP.apiCall(`/challenges/${id}/join`, { method: 'POST' });
+          await render();
+        } catch (err) {
+          console.error('Failed to toggle challenge status:', err);
+          if (err.message.includes('Authentication required')) {
+            location.href = 'login.html';
+          }
+        }
+      });
+    });
+  } catch (err) {
+    console.error('Failed to render challenges:', err);
+  }
+}
+render();
+</script>
+</body>
+</html>
