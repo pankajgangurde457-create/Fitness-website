@@ -45,7 +45,7 @@ FP.API_URL = (function() {
     return 'http://localhost:5000/api';
   }
   // Production backend on Render
-  return 'https://fitpulse-backend-oy6z.onrender.com/api';
+  return 'https://fitpulse-backend-8aru.onrender.com/api';
 })();
 
 FP.apiCall = async function (endpoint, options = {}) {
