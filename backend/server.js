@@ -34,8 +34,13 @@ app.use(helmet({
   crossOriginResourcePolicy: false
 }));
 
+const PRODUCTION_FRONTEND = 'https://fitness-website-eta-seven.vercel.app';
+
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [process.env.FRONTEND_URL].filter(Boolean)
+  ? [
+      PRODUCTION_FRONTEND,
+      process.env.FRONTEND_URL,
+    ].filter(Boolean)
   : ['*'];
 
 app.use(cors({
@@ -43,7 +48,10 @@ app.use(cors({
     // Allow requests with no origin (curl, mobile apps, Render health checks)
     if (!origin) return callback(null, true);
     if (process.env.NODE_ENV !== 'production') return callback(null, true);
+    // Allow exact matches
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow any vercel.app preview deployment
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
