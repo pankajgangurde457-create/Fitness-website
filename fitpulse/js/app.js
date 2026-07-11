@@ -36,7 +36,17 @@ FP.initNav = function () {
 };
 
 /* ---------------- API & DB helpers ---------------- */
-FP.API_URL = 'http://localhost:5000/api';
+// API URL: auto-detects environment at runtime (no build step required)
+// - Production (Vercel): uses the Render backend URL
+// - Local development: uses localhost:5000
+FP.API_URL = (function() {
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:5000/api';
+  }
+  // Production backend on Render
+  return 'https://fitpulse-backend-oy6z.onrender.com/api';
+})();
 
 FP.apiCall = async function (endpoint, options = {}) {
   const token = localStorage.getItem('fp_token');

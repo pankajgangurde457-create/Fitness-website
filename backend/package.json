@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Backend API Server for FitPulse Website",
   "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
@@ -17,3 +20,4 @@
     "morgan": "^1.10.0"
   }
 }
+
